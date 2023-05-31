@@ -1,0 +1,57 @@
+.navigation {
+    position: relative;
+}
+
+.menu-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    background-color: #ffffff;
+    border-radius: 50%;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+}
+
+.menu-toggle:hover {
+    background-color: #f2f2f2;
+}
+
+.menu-toggle:focus {
+    background-color: #e6e6e6;
+}
+
+
+.menu-container {
+    position: fixed;
+    top: 0;
+    left: -200px;
+    width: 200px;
+    height: 100vh;
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: left 0.3s ease;
+    z-index: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 70px 10px 10px;
+}
+
+
+
+.menu-container.open {
+    max-width: 200px; /* Adjust the max height as needed */
+}
+.navigation.open .menu-container {
+    left: 0;
+}

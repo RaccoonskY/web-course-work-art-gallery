@@ -1,0 +1,16 @@
+import React from 'react';
+import "./index.css";
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+
+import App from './App.jsx';
+import {createRoot} from "react-dom/client";
+
+const container = document.getElementById('root');
+const root = createRoot(container);
+root.render(
+    <React.StrictMode>
+        <App/>
+    </React.StrictMode>
+);
+
