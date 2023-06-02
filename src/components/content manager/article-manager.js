@@ -1,33 +1,72 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
+import axios from "axios";
+
+import {formatDate} from "../../utils/data_formate";
 
 const ArticleManager = () => {
-    const initialArticles = [
-        {
-            id: 1,
-            previewImage: 'article1.jpg',
-            text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-            date: '2023-05-30',
-        },
-        // Add more article objects as needed
-    ];
-
-    const [articles, setArticles] = useState(initialArticles);
+    const [articles, setArticles] = useState([]);
     const [editingArticle, setEditingArticle] = useState(null);
+    const [newArticle, setNewArticle] = useState({
+        previewImage: "",
+        text: "",
+        date: "",
+    });
+
+    useEffect(() => {
+        fetchArticles();
+    }, []);
+
+    const fetchArticles = async () => {
+        try {
+            const response = await axios.get('http://localhost:3001' + '/article/get_all');
+            setArticles(response.data);
+        } catch (error) {
+            console.error("Error fetching articles:", error);
+        }
+    };
 
     const handleEditArticle = (article) => {
         setEditingArticle(article);
     };
 
-    const handleSaveArticle = (updatedArticle) => {
-        setArticles((prevArticles) =>
-            prevArticles.map((article) => (article.id === updatedArticle.id ? updatedArticle : article))
-        );
-        setEditingArticle(null);
+    const handleSaveArticle = async (updatedArticle) => {
+        try {
+            await axios.put('http://localhost:3001'+`/article/update/${updatedArticle._id}`, updatedArticle);
+            setArticles((prevArticles) =>
+                prevArticles.map((article) =>
+                    article._id === updatedArticle._id ? updatedArticle : article
+                )
+            );
+            setEditingArticle(null);
+        } catch (error) {
+            console.error("Error saving article:", error);
+        }
     };
 
-    const handleDeleteArticle = (articleToDelete) => {
-        setArticles((prevArticles) => prevArticles.filter((article) => article.id !== articleToDelete.id));
-        setEditingArticle(null);
+    const handleDeleteArticle = async (articleToDelete) => {
+        try {
+            await axios.delete('http://localhost:3001'+`/article/delete/${articleToDelete._id}`);
+            setArticles((prevArticles) =>
+                prevArticles.filter((article) => article._id !== articleToDelete._id)
+            );
+            setEditingArticle(null);
+        } catch (error) {
+            console.error("Error deleting article:", error);
+        }
+    };
+
+    const handleAddArticle = async () => {
+        try {
+            const response = await axios.post('http://localhost:3001'+"/article/create", newArticle);
+            setArticles((prevArticles) => [...prevArticles, response.data]);
+            setNewArticle({
+                previewImage: "",
+                text: "",
+                date: "",
+            });
+        } catch (error) {
+            console.error("Error adding article:", error);
+        }
     };
 
     return (
@@ -95,11 +134,11 @@ const ArticleManager = () => {
                 </thead>
                 <tbody>
                 {articles.map((article) => (
-                    <tr key={article.id} className="hover:bg-blue-100">
-                        <td className="border border-gray-400 py-2 px-4">{article.id}</td>
+                    <tr key={article._id} className="hover:bg-blue-100">
+                        <td className="border border-gray-400 py-2 px-4">{article._id}</td>
                         <td className="border border-gray-400 py-2 px-4">{article.previewImage}</td>
                         <td className="border border-gray-400 py-2 px-4">{article.text}</td>
-                        <td className="border border-gray-400 py-2 px-4">{article.date}</td>
+                        <td className="border border-gray-400 py-2 px-4">{formatDate(article.date)}</td>
                         <td className="border border-gray-400 py-2 px-4">
                             <button
                                 onClick={() => handleEditArticle(article)}
@@ -116,6 +155,44 @@ const ArticleManager = () => {
                         </td>
                     </tr>
                 ))}
+                <tr>
+                    <td className="border px-4 py-2">
+                        ID
+                    </td>
+                    <td className="border px-4 py-2">
+                        <input
+                            type="text"
+                            value={newArticle.previewImage}
+                            onChange={(e) =>
+                                setNewArticle({ ...newArticle, previewImage: e.target.value })
+                            }
+                            className="border border-gray-400 px-2 py-1 rounded"
+                        />
+                    </td>
+                    <td className="border px-4 py-2">
+              <textarea
+                  value={newArticle.text}
+                  onChange={(e) => setNewArticle({ ...newArticle, text: e.target.value })}
+                  className="border border-gray-400 px-2 py-1 rounded"
+              />
+                    </td>
+                    <td className="border px-4 py-2">
+                        <input
+                            type="date"
+                            value={newArticle.date}
+                            onChange={(e) => setNewArticle({ ...newArticle, date: e.target.value })}
+                            className="border border-gray-400 px-2 py-1 rounded"
+                        />
+                    </td>
+                    <td className="border px-4 py-2">
+                        <button
+                            className="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded"
+                            onClick={handleAddArticle}
+                        >
+                            Add
+                        </button>
+                    </td>
+                </tr>
                 </tbody>
             </table>
         )}

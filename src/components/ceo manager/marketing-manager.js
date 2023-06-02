@@ -1,62 +1,71 @@
-import React, {useState} from "react";
+import React, { useState, useEffect } from "react";
+import {formatDate} from "../../utils/data_formate";
+import axios from "axios";
 
 const MarketingManager = () => {
     // State for storing and editing consumers
-    const [consumers, setConsumers] = useState([
-        // Example consumer data
-        {
-            id: 1,
-            fullName: 'John Doe',
-            phoneNumber: '1234567890',
-            email: 'johndoe@example.com',
-            dateToBook: '2023-06-01',
-            dateOfBuying: '2023-06-05',
-            selectedExhibition: 'Exhibition 1',
-            numberOfPeople: 2,
-            type: 'Regular',
-        },
-        {
-            id: 2,
-            fullName: 'Jane Smith',
-            phoneNumber: '9876543210',
-            email: 'janesmith@example.com',
-            dateToBook: '2023-06-02',
-            dateOfBuying: '2023-06-06',
-            selectedExhibition: 'Exhibition 2',
-            numberOfPeople: 3,
-            type: 'VIP',
-        },
-        // ... add more consumers as needed
-    ]);
-
+    const [consumers, setConsumers] = useState([]);
     const [editingId, setEditingId] = useState(null);
+
+    // Fetch consumers data from the server
+    useEffect(() => {
+        fetchConsumers();
+    }, []);
+
+    const fetchConsumers = async () => {
+        try {
+            const response = await axios.get("http://localhost:3001" +'/consumer/get_all');
+            console.log(response.data);
+            setConsumers(response.data);
+        } catch (error) {
+            console.error("Failed to fetch consumers:", error);
+        }
+    };
+
     const handleEditConsumer = (id) => {
         setEditingId(id);
     };
 
-    const handleSaveConsumer = (id) => {
-        // Perform necessary actions to save changes for the consumer
-        console.log(`Saved changes for consumer with ID: ${id}`);
-        setEditingId(null);
+    const handleSaveConsumer = async (id) => {
+        try {
+            const consumerToUpdate = consumers.find((consumer) => consumer._id === id);
+            await axios.put("http://localhost:3001"+`/consumer/update/${id}`, consumerToUpdate);
+            setEditingId(null);
+        } catch (error) {
+            console.error(`Failed to save changes for consumer with ID: ${id}`, error);
+        }
     };
-    // Function to handle consumer changes
+
     const handleConsumerChange = (id, column, value) => {
         setConsumers((prevConsumers) =>
             prevConsumers.map((consumer) =>
-                consumer.id === id ? { ...consumer, [column]: value } : consumer
+                consumer._id === id ? { ...consumer, [column]: value } : consumer
             )
         );
     };
 
-    // Function to delete a consumer
-    const handleDeleteConsumer = (id) => {
-        setConsumers((prevConsumers) => prevConsumers.filter((consumer) => consumer.id !== id));
+    const handleDeleteConsumer = async (id) => {
+        try {
+            await axios.delete("http://localhost:3001"+`/consumer/delete/${id}`);
+            setConsumers((prevConsumers) =>
+                prevConsumers.filter((consumer) => consumer._id !== id)
+            );
+        } catch (error) {
+            console.error(`Failed to delete consumer with ID: ${id}`, error);
+        }
     };
 
-    const handleSubmitConsumer = (consumer) => {
-        // Perform necessary actions to submit changes for the consumer
-        console.log(`Submitted changes for consumer with ID: ${consumer}`);
+/*
+    const handleSubmitConsumer = async (consumer) => {
+        try {
+            const response = await axios.post("/api/consumers", consumer);
+            const savedConsumer = response.data;
+            setConsumers((prevConsumers) => [...prevConsumers, savedConsumer]);
+        } catch (error) {
+            console.error("Failed to submit consumer changes:", error);
+        }
     };
+*/
 
     return (
         <div className="bg-gray-100 p-4 mt-8">
@@ -78,14 +87,14 @@ const MarketingManager = () => {
                 </thead>
                 <tbody>
                 {consumers.map((consumer) => (
-                    <tr key={consumer.id}>
-                        <td className="border px-4 py-2">{consumer.id}</td>
+                    <tr key={consumer._id}>
+                        <td className="border px-4 py-2">{consumer._id}</td>
                         <td className="border px-4 py-2">
-                            {editingId === consumer.id ? (
+                            {editingId === consumer._id ? (
                                 <input
                                     type="text"
                                     value={consumer.fullName}
-                                    onChange={(e) => handleConsumerChange(consumer.id, 'fullName', e.target.value)}
+                                    onChange={(e) => handleConsumerChange(consumer._id, 'fullName', e.target.value)}
                                     className="border border-gray-400 px-2 py-1 rounded"
                                 />
                             ) : (
@@ -93,11 +102,11 @@ const MarketingManager = () => {
                             )}
                         </td>
                         <td className="border px-4 py-2">
-                            {editingId === consumer.id ? (
+                            {editingId === consumer._id ? (
                                 <input
                                     type="text"
                                     value={consumer.phoneNumber}
-                                    onChange={(e) => handleConsumerChange(consumer.id, 'phoneNumber', e.target.value)}
+                                    onChange={(e) => handleConsumerChange(consumer._id, 'phoneNumber', e.target.value)}
                                     className="border border-gray-400 px-2 py-1 rounded"
                                 />
                             ) : (
@@ -105,28 +114,28 @@ const MarketingManager = () => {
                             )}
                         </td>
                         <td className="border px-4 py-2">
-                            {editingId === consumer.id ? (
+                            {editingId === consumer._id ? (
                                 <input
                                     type="text"
                                     value={consumer.email}
-                                    onChange={(e) => handleConsumerChange(consumer.id, 'email', e.target.value)}
+                                    onChange={(e) => handleConsumerChange(consumer._id, 'email', e.target.value)}
                                     className="border border-gray-400 px-2 py-1 rounded"
                                 />
                             ) : (
                                 consumer.email
                             )}
                         </td>
-                        <td className="border px-4 py-2">{consumer.dateToBook}</td>
-                        <td className="border px-4 py-2">{consumer.dateOfBuying}</td>
+                        <td className="border px-4 py-2">{formatDate(consumer.dateToBook)}</td>
+                        <td className="border px-4 py-2">{formatDate(consumer.dateOfBuying)}</td>
                         <td className="border px-4 py-2">{consumer.selectedExhibition}</td>
                         <td className="border px-4 py-2">{consumer.numberOfPeople}</td>
                         <td className="border px-4 py-2">{consumer.type}</td>
                         <td className="border px-4 py-2">
-                            {editingId === consumer.id ? (
+                            {editingId === consumer._id ? (
                                 <>
                                     <button
                                         className="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded mr-2"
-                                        onClick={() => handleSaveConsumer(consumer.id)}
+                                        onClick={() => handleSaveConsumer(consumer._id)}
                                     >
                                         Save
                                     </button>
@@ -140,14 +149,14 @@ const MarketingManager = () => {
                             ) : (
                                 <button
                                     className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded"
-                                    onClick={() => handleEditConsumer(consumer.id)}
+                                    onClick={() => handleEditConsumer(consumer._id)}
                                 >
                                     Edit
                                 </button>
                             )}
                             <button
                                 className="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded ml-2"
-                                onClick={() => handleDeleteConsumer(consumer.id)}
+                                onClick={() => handleDeleteConsumer(consumer._id)}
                             >
                                 Delete
                             </button>

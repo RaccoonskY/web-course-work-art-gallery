@@ -1,8 +1,37 @@
-import React from "react";
+import React, {useState} from "react";
 import { ReactComponent as Logo } from '../assets/National_Gallery_of_Art_logo.svg';
+import axios from "axios";
+import Cookie from "js-cookie";
+import {useNavigate} from "react-router-dom";
 
 
 const StaffAuth = () =>{
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const navigate = useNavigate();
+
+    const handleEmailChange = (e) => {
+        setEmail(e.target.value);
+    };
+
+    const handlePasswordChange = (e) => {
+        setPassword(e.target.value);
+    };
+
+    const handleSignIn = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.get('http://localhost:3001'+`/user/auth/${email}/${password}`);
+            Cookie.set('type', response.data.type);
+            console.log(response.data.type);
+            alert("Добро пожаловать, "+ response.data.type);
+            navigate('/');
+        } catch (error) {
+            console.error('Failed to sign in:', error);
+        }
+    };
+
+
     return(
     <>
         <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
@@ -23,9 +52,10 @@ const StaffAuth = () =>{
                             <input
                                 id="email"
                                 name="email"
-                                type="email"
+                                type="text"
                                 autoComplete="email"
                                 required
+                                onChange={handleEmailChange}
                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                             />
                         </div>
@@ -44,6 +74,7 @@ const StaffAuth = () =>{
                                 type="password"
                                 autoComplete="current-password"
                                 required
+                                onChange={handlePasswordChange}
                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                             />
                         </div>
@@ -52,14 +83,13 @@ const StaffAuth = () =>{
                     <div>
                         <button
                             type="submit"
+                            onClick={handleSignIn}
                             className="flex w-full justify-center rounded-md bg-indigo-400 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                         >
                             Sign in
                         </button>
                     </div>
                 </form>
-
-
             </div>
         </div>
     </>

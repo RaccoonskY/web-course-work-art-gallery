@@ -1,65 +1,82 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
+import axios from "axios";
 
-// ExhibitionManager component
+import {formatDate} from "../../utils/data_formate";
+
 const ExhibitionManager = () => {
-    const initialExhibitions = [
-        {
-            id: 1,
-            previewImage: 'exhibition1.jpg',
-            name: 'Exhibition 1',
-            dateOpening: '2023-06-01',
-            dateClosing: '2023-07-01',
-            description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-            exhibits: [
-                {
-                    id: 1,
-                    name: 'Exhibit 1',
-                    image: 'exhibit1.jpg',
-                    dateOfAcception: '2023-05-15',
-                    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-                },
-                // Add more exhibit objects as needed
-            ],
-        },
-        {
-            id: 2,
-            previewImage: 'exhibition1.jpg',
-            name: 'Exhibition 2',
-            dateOpening: '2023-06-01',
-            dateClosing: '2023-07-01',
-            description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-            exhibits: [
-                {
-                    id: 1,
-                    name: 'Exhibit 1',
-                    image: 'exhibit1.jpg',
-                    dateOfAcception: '2023-05-15',
-                    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-                },
-                // Add more exhibit objects as needed
-            ],
-        },
-        // Add more exhibition objects as needed
-    ];
 
-    const [exhibitions, setExhibitions] = useState(initialExhibitions);
+    const [exhibitions, setExhibitions] = useState([]);
     const [editingExhibition, setEditingExhibition] = useState(null);
+    const [newExhibition, setNewExhibition] = useState({
+        _id: '',
+        previewImage: '',
+        name: '',
+        dateOpening: '',
+        dateClosing: '',
+        description: '',
+        exhibits: [],
+    });
+
+    useEffect(() => {
+        fetchExhibitions();
+    }, []);
+
+    const fetchExhibitions = async () => {
+        try {
+            const res = await axios.get('http://localhost:3001' + '/exhibition/get_all');
+            setExhibitions(res.data);
+        } catch (error) {
+            console.error('Error fetching exhibitions:', error);
+        }
+    };
 
     const handleEditExhibition = (exhibition) => {
         setEditingExhibition(exhibition);
     };
 
-    const handleSaveExhibition = (updatedExhibition) => {
-        setExhibitions((prevExhibitions) =>
-            prevExhibitions.map((exhibition) => (exhibition.id === updatedExhibition.id ? updatedExhibition : exhibition))
-        );
-        setEditingExhibition(null);
+    const handleSaveExhibition = async (updatedExhibition) => {
+        try {
+            await axios.put('http://localhost:3001'+ `/exhibition/update/${updatedExhibition._id}`, updatedExhibition);
+            setExhibitions((prevExhibitions) =>
+                prevExhibitions.map((exhibition) => (exhibition._id === updatedExhibition._id ? updatedExhibition : exhibition))
+            );
+            setEditingExhibition(null);
+        } catch (error) {
+            console.error('Error saving exhibition:', error);
+        }
     };
 
-    const handleDeleteExhibition = (exhibitionToDelete) => {
-        setExhibitions((prevExhibitions) => prevExhibitions.filter((exhibition) => exhibition.id !== exhibitionToDelete.id));
-        setEditingExhibition(null);
+    const handleDeleteExhibition = async (exhibitionToDelete) => {
+        try {
+            await axios.delete('http://localhost:3001'+`/exhibition/delete/${exhibitionToDelete._id}`);
+            setExhibitions((prevExhibitions) => prevExhibitions.filter((exhibition) => exhibition._id !== exhibitionToDelete._id));
+            setEditingExhibition(null);
+        } catch (error) {
+            console.error('Error deleting exhibition:', error);
+        }
     };
+
+    const handleAddExhibition = async (newExhibition) => {
+        console.log(newExhibition);
+        try {
+            const response = await axios.post('http://localhost:3001'+ '/exhibition/create', newExhibition);
+            setExhibitions((prevExhibitions) => [...prevExhibitions, response.data]);
+            setNewExhibition({
+                _id: '',
+                previewImage: '',
+                name: '',
+                dateOpening: '',
+                dateClosing: '',
+                description: '',
+                exhibits: [],
+            });
+        } catch (error) {
+            console.error('Error adding exhibition:', error);
+        }
+    };
+
+
+
 
     return(
         <div className="bg-gray-100 p-4">
@@ -148,12 +165,12 @@ const ExhibitionManager = () => {
                 </thead>
                 <tbody>
                 {exhibitions.map((exhibition) => (
-                    <tr key={exhibition.id}  className="hover:bg-blue-100">
-                        <td className="border border-gray-400 py-2 px-4">{exhibition.id}</td>
+                    <tr key={exhibition._id}  className="hover:bg-blue-100">
+                        <td className="border border-gray-400 py-2 px-4">{exhibition._id}</td>
                         <td className="border border-gray-400 py-2 px-4">{exhibition.previewImage}</td>
                         <td className="border border-gray-400 py-2 px-4">{exhibition.name}</td>
-                        <td className="border border-gray-400 py-2 px-4">{exhibition.dateOpening}</td>
-                        <td className="border border-gray-400 py-2 px-4">{exhibition.dateClosing}</td>
+                        <td className="border border-gray-400 py-2 px-4">{formatDate(exhibition.dateOpening)}</td>
+                        <td className="border border-gray-400 py-2 px-4">{formatDate(exhibition.dateClosing)}</td>
                         <td className="border border-gray-400 py-2 px-4">{exhibition.description}</td>
                         <td className="border border-gray-400 py-2 px-4">{exhibition.exhibits.length}</td>
                         <td className="border border-gray-400 py-2 px-4">
@@ -172,6 +189,64 @@ const ExhibitionManager = () => {
                         </td>
                     </tr>
                 ))}
+
+                <tr>
+                    <td className="border px-4 py-2">
+                        ID
+                    </td>
+                    <td className="border px-4 py-2">
+                        <input
+                            className="bg-white focus:bg-gray-200 appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            type="text"
+                            value={newExhibition.previewImage}
+                            onChange={(e) => setNewExhibition({...newExhibition, previewImage: e.target.value})}
+                        />
+                    </td>
+                    <td className="border px-4 py-2">
+                        <input
+                            className="bg-white focus:bg-gray-200 appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            type="text"
+                            value={newExhibition.name}
+                            onChange={(e) => setNewExhibition({...newExhibition, name: e.target.value})}
+                        />
+                    </td>
+                    <td className="border px-4 py-2">
+                        <input
+                            className="bg-white focus:bg-gray-200 appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            type="date"
+                            value={newExhibition.dateOpening}
+                            onChange={(e) => setNewExhibition({...newExhibition, dateOpening: e.target.value})}
+                        />
+                    </td>
+                    <td className="border px-4 py-2">
+                        <input
+                            className="bg-white focus:bg-gray-200 appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            type="date"
+                            value={newExhibition.dateClosing}
+                            onChange={(e) => setNewExhibition({...newExhibition, dateClosing: e.target.value})}
+                        />
+                    </td>
+                    <td className="border px-4 py-2">
+                        <textarea
+                            className="bg-white focus:bg-gray-200 appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            value={newExhibition.description}
+                            onChange={(e) => setNewExhibition({...newExhibition, description: e.target.value})}
+                        />
+                    </td>
+                    <td className="border px-4 py-2">
+                        Exhibits
+                    </td>
+
+                    <td className="border px-4 py-2">
+                        <button
+                            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded"
+                            onClick={() => handleAddExhibition(newExhibition)}
+                        >
+                            Add
+                        </button>
+                    </td>
+                </tr>
+
                 </tbody>
             </table>
         )}

@@ -1,4 +1,6 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
+import axios from "axios";
+import {formatDate} from "../../utils/data_formate";
 
 
 const News = ({ news }) => {
@@ -6,9 +8,9 @@ const News = ({ news }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {news.map((item, index) => (
                 <a key={index} href={item.link} className="block bg-white rounded-lg shadow-md p-4 hover:shadow-lg">
-                    <img src={item.image} alt={`News ${index + 1}`} className="w-full h-48 object-cover mb-4 rounded" />
-                    <h3 className="text-xl font-bold mb-2">{item.heading}</h3>
-                    <p className="text-gray-600">{item.date}</p>
+                    <img src={item.previewImage} alt={`News ${index + 1}`} className="w-full h-48 object-cover mb-4 rounded" />
+                    <h3 className="text-xl font-bold mb-2">{item.text}</h3>
+                    <p className="text-gray-600">{formatDate(item.date)}</p>
                 </a>
             ))}
         </div>
@@ -16,39 +18,28 @@ const News = ({ news }) => {
 };
 
 
-const NewsSection = ({news})=>{
-    const newsData = [
-        {
-            image: 'https://static.1tv.ru/uploads/video/material/splash/2022/10/22/750806/big/750806_big_2079786d17.jpg',
-            heading: 'New Exhibition Opening',
-            date: 'May 15, 2023',
-            link: '/news/1',
-        },
-        {
-            image: 'https://static.1tv.ru/uploads/video/material/splash/2022/10/22/750806/big/750806_big_2079786d17.jpg',
-            heading: 'Artist Spotlight: Jane Doe',
-            date: 'June 1, 2023',
-            link: '/news/2',
-        },
-        {
-            image: 'https://static.1tv.ru/uploads/video/material/splash/2022/10/22/750806/big/750806_big_2079786d17.jpg',
-            heading: 'Gallery Renovation Update',
-            date: 'June 15, 2023',
-            link: '/news/3',
-        },
-        {
-            image: 'https://static.1tv.ru/uploads/video/material/splash/2022/10/22/750806/big/750806_big_2079786d17.jpg',
-            heading: 'Gallery Renovation Update',
-            date: 'June 15, 2023',
-            link: '/news/3',
-        },
-    ];
+const NewsSection = ()=>{
+    const [news, setNews] = useState([]);
+
+    useEffect(() => {
+        fetchNews();
+    }, []);
+
+    const fetchNews = async () => {
+        try {
+            const response = await axios.get('http://localhost:3001/'+'article/get_all');
+            const fetchedNews = response.data;
+            setNews(fetchedNews);
+        } catch (error) {
+            console.error('Failed to fetch news:', error);
+        }
+    };
 
     return(
         <div className="py-8 bg-gray-900">
             <div className=" mt-10 container mx-auto">
                 <h2 className="text-2xl font-bold text-white mb-4 underline">Последние новости и объявления</h2>
-                <News news={newsData} />
+                <News news={news} />
             </div>
         </div>
     );

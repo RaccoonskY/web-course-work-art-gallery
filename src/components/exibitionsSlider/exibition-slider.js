@@ -1,31 +1,35 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Exhibition from "./exhibition";
+import axios from 'axios';
+
+import {formatDate} from "../../utils/data_formate";
+
 const ExhibitionSlider = () => {
-    const exhibitions = [
-        {
-            name: 'Exhibition 1',
-            description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-            date: 'August 15 - September 15, 2023',
-            images: [
-                'https://cameralabs.org/media/k2/items/cache/5e3bd17765e820213981ad5d80fbce34_L.jpg',
-                'https://www.theartnewspaper.ru/media/original_images/3f92a81d-4e8b-46c6-9149-6344e1e930d6.jpg',
-                'https://losko.ru/wp-content/uploads/2019/11/cover-1.jpg',
-            ],
-        },
-        {
-            name: 'Exhibition 2',
-            description: 'Ut tincidunt eleifend mauris, et finibus est luctus vel.',
-            date: 'September 1 - October 31, 2023',
-            images: [
-                'https://cameralabs.org/media/k2/items/cache/5e3bd17765e820213981ad5d80fbce34_L.jpg',
-                'https://www.theartnewspaper.ru/media/original_images/3f92a81d-4e8b-46c6-9149-6344e1e930d6.jpg',
-                'https://bigpicture.ru/wp-content/uploads/2021/03/bigpicture_ru_9-site-598-750x480-1.png',
-            ],
-        },
-        // Add more exhibitions here
-    ];
+    const [exhibitions, setExhibitions] = useState([]);
 
     const [currentExhibitionIndex, setCurrentExhibitionIndex] = useState(0);
+
+
+    useEffect(() => {
+        fetchExhibitions();
+    }, []);
+
+    const fetchExhibitions = async () => {
+        try {
+            const response = await axios.get('http://localhost:3001' + '/exhibition/get_all');
+            const fetchedExhibitions = response.data;
+            const exhibitPromises = fetchedExhibitions.map(async (exhibition) => {
+                const exhibitResponse = await axios.get('http://localhost:3001'+ `/exhibit/get_ref?exhibitionId=${exhibition._id}`);
+                exhibition.exhibits = exhibitResponse.data;
+                return exhibition;
+            });
+            const updatedExhibitions = await Promise.all(exhibitPromises);
+            console.log(updatedExhibitions);
+            setExhibitions(updatedExhibitions);
+        } catch (error) {
+            console.error('Failed to fetch exhibitions:', error);
+        }
+    };
 
     const handleNextExhibition = () => {
         setCurrentExhibitionIndex((prevIndex) =>
@@ -38,6 +42,7 @@ const ExhibitionSlider = () => {
             prevIndex === 0 ? exhibitions.length - 1 : prevIndex - 1
         );
     };
+
 
     const currentExhibition = exhibitions[currentExhibitionIndex];
 
@@ -58,7 +63,11 @@ const ExhibitionSlider = () => {
                     >
                         Следующая
                     </button>
-                    <Exhibition {...currentExhibition} />
+                    {currentExhibition && <Exhibition {...{
+                        name:           currentExhibition.name,
+                        description:    currentExhibition.description,
+                        date:           formatDate(currentExhibition.dateOpening) +" - "+ formatDate(currentExhibition.dateClosing),
+                        images:         currentExhibition.exhibits.map((exhibit) => exhibit.image)}} />}
                 </div>
             </div>
         </div>
