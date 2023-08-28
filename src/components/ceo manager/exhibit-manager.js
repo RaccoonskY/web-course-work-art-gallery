@@ -1,6 +1,8 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {formatDate} from "../../utils/data_formate";
+import {addAction} from "../../utils/action_requests";
+import Cookie from "js-cookie";
 
 const ExhibitManager = () => {
     // State for storing and editing exhibits
@@ -63,6 +65,7 @@ const ExhibitManager = () => {
             );
             console.log(`Saved changes for exhibit with ID: ${id}`);
             setEditingId(null);
+            addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'EXHIBIT CHANGED');
         } catch (err) {
             console.error("Error saving exhibit changes:", err);
         }
@@ -75,6 +78,7 @@ const ExhibitManager = () => {
             setExhibits((prevExhibits) =>
                 prevExhibits.filter((exhibit) => exhibit._id !== id)
             );
+            addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'EXHIBIT DELETED');
         } catch (err) {
             console.error("Error deleting exhibit:", err);
         }
@@ -92,6 +96,7 @@ const ExhibitManager = () => {
                 description: "",
                 exhibitionId: "",
             });
+            addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'EXHIBIT ADDED');
         } catch (err) {
             console.error("Error adding exhibit:", err);
         }
@@ -136,7 +141,7 @@ const ExhibitManager = () => {
                                     className="border border-gray-400 px-2 py-1 rounded"
                                 />
                             ) : (
-                                exhibit.image
+                                <img className="w-96" src={exhibit.image}/>
                             )}
                         </td>
                         <td className="border px-4 py-2">
@@ -166,6 +171,7 @@ const ExhibitManager = () => {
                         </td>
                         <td className="border px-4 py-2">{editingId === exhibit._id ? (
                             <select value={exhibit.exhibitionId}  onChange={(e) =>{handleExhibitChange(exhibit._id, 'exhibitionId', e.target.value)}}>
+                                {<option>Выберите выставку</option>}
                                 {
                                  exhibitions.map((exhibition)=>(
                                     <option key={exhibition._id} value={exhibition._id}>{exhibition.name}</option>
@@ -250,6 +256,7 @@ const ExhibitManager = () => {
                     </td>
                     <td className="border px-4 py-2">
                         <select value={newExhibit.exhibitionId}  onChange={(e) =>{console.log('new id', e.target.value);setNewExhibit({...newExhibit, exhibitionId: e.target.value})}}>
+                            {<option>Выберите выставку</option>}
                             {
                                 exhibitions.map((exhibition)=>(
                                     <option key={exhibition._id} value={exhibition._id} >{exhibition.name}</option>

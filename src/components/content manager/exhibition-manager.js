@@ -2,6 +2,8 @@ import React, {useEffect, useState} from 'react';
 import axios from "axios";
 
 import {formatDate} from "../../utils/data_formate";
+import {addAction} from "../../utils/action_requests";
+import Cookie from "js-cookie";
 
 const ExhibitionManager = () => {
 
@@ -24,7 +26,13 @@ const ExhibitionManager = () => {
     const fetchExhibitions = async () => {
         try {
             const res = await axios.get('http://localhost:3001' + '/exhibition/get_all');
-            setExhibitions(res.data);
+            const exhibitPromises = res.data.map(async (exhibition) => {
+                const exhibitResponse = await axios.get('http://localhost:3001'+ `/exhibit/get_ref?exhibitionId=${exhibition._id}`);
+                exhibition.exhibits = exhibitResponse.data;
+                return exhibition;
+            });
+            const updatedExhibitions = await Promise.all(exhibitPromises);
+            setExhibitions(updatedExhibitions);
         } catch (error) {
             console.error('Error fetching exhibitions:', error);
         }
@@ -41,6 +49,8 @@ const ExhibitionManager = () => {
                 prevExhibitions.map((exhibition) => (exhibition._id === updatedExhibition._id ? updatedExhibition : exhibition))
             );
             setEditingExhibition(null);
+
+            addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'EXHIBITION CHANGED');
         } catch (error) {
             console.error('Error saving exhibition:', error);
         }
@@ -51,6 +61,7 @@ const ExhibitionManager = () => {
             await axios.delete('http://localhost:3001'+`/exhibition/delete/${exhibitionToDelete._id}`);
             setExhibitions((prevExhibitions) => prevExhibitions.filter((exhibition) => exhibition._id !== exhibitionToDelete._id));
             setEditingExhibition(null);
+            addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'EXHIBITION DELETED');
         } catch (error) {
             console.error('Error deleting exhibition:', error);
         }
@@ -70,6 +81,8 @@ const ExhibitionManager = () => {
                 description: '',
                 exhibits: [],
             });
+
+            addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'EXHIBITION ADDED');
         } catch (error) {
             console.error('Error adding exhibition:', error);
         }

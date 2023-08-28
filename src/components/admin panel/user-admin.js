@@ -1,5 +1,9 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
+import {addAction,getAllActions,clearActions} from "../../utils/action_requests";
+
+import Cookie from "js-cookie";
+
 const UserAdministratingPanel = () => {
     const [users, setUsers] = useState([]);
     const [editingUser, setEditingUser] = useState(null);
@@ -11,6 +15,7 @@ const UserAdministratingPanel = () => {
     });
 
     useEffect(()=>{
+        console.log(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'));
         axios.get('http://localhost:3001' + '/user/all',{
         }).then(res =>{
             console.log('Got users:',res.data);
@@ -28,30 +33,36 @@ const UserAdministratingPanel = () => {
             headers: {
                 "Content-Type": "application/json",
             }
+        }).then(()=>{
         }).catch(err=>console.error(err));
+        addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'DELETE USER');
         setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userToDelete._id));
     };
 
     const handleAddUser = (userToAdd) =>{
         console.log('userToAdd', userToAdd);
-        axios.post('http://localhost:3001' + '/user/create', userToAdd,{
-            headers: {
-                "Content-Type": "application/json",
-            }
-        }).
-        then(res=>{
-            setUsers((prevUsers) => [...prevUsers, res.data]);
-        }).
-        catch(err=>console.error(err));
+        if(!hasEmptyValues(userToAdd)){
+            axios.post('http://localhost:3001' + '/user/create', userToAdd,{
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            }).
+            then(res=>{
+                setUsers((prevUsers) => [...prevUsers, res.data]);
+                addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'ADD USER');
+            }).
+            catch(err=>console.error(err));
 
-        setEditingUser(null);
-        setNewUser({
-            name: '',
-            login: '',
-            password: '',
-            type: '',
-        });
-
+            setEditingUser(null);
+            setNewUser({
+                name: '',
+                login: '',
+                password: '',
+                type: '',
+            });
+        } else {
+            alert('Заполните все поля');
+        }
     }
 
     const handleEditUser = (user) => {
@@ -60,15 +71,22 @@ const UserAdministratingPanel = () => {
 
     const handleSaveUser = () => {
         console.log(editingUser);
-        axios.put('http://localhost:3001' + '/user/update', editingUser,{
-            headers: {
-                "Content-Type": "application/json",
-            }
-        }).
-            then().
+        if (!hasEmptyValues(editingUser)){
+            axios.put('http://localhost:3001' + '/user/update', editingUser,{
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            }).
+            then(()=>{
+                addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'UPDATE USER');
+            }).
             catch(err=>console.error(err));
-        handleUpdateUser(editingUser);
-        setEditingUser(null);
+            handleUpdateUser(editingUser);
+            setEditingUser(null);
+        }else {
+            alert('Заполните все поля');
+        }
+
     };
 
 
@@ -79,9 +97,17 @@ const UserAdministratingPanel = () => {
         setEditingUser(updatedUser);
     };
 
+    function hasEmptyValues(obj) {
+        for (let key in obj) {
+            if (obj[key] === '') {
+                return true;
+            }
+        }
+        return false;
+    }
 
     return (
-        <div className='mt-14'>
+        <div className='mt-0'>
             <h2>User Administration</h2>
             <table className="w-full border-collapse">
                 <thead>
@@ -187,6 +213,7 @@ const UserAdministratingPanel = () => {
                     </td>
                     <td className="border px-4 py-2">
                         <select value={newUser.type} defaultValue='admin'  onChange={(e) =>{console.log(e.target.value);setNewUser({ ...newUser, type: e.target.value })}}>
+                            <option>Change role</option>
                             <option value='admin' >Admin</option>
                             <option value='manager'>Manager</option>
                             <option value='content manager'>Content manager</option>

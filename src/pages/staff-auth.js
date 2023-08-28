@@ -3,6 +3,7 @@ import { ReactComponent as Logo } from '../assets/National_Gallery_of_Art_logo.s
 import axios from "axios";
 import Cookie from "js-cookie";
 import {useNavigate} from "react-router-dom";
+import {addAction} from "../utils/action_requests";
 
 
 const StaffAuth = () =>{
@@ -22,11 +23,15 @@ const StaffAuth = () =>{
         e.preventDefault();
         try {
             const response = await axios.get('http://localhost:3001'+`/user/auth/${email}/${password}`);
+            Cookie.set('user_id', response.data._id);
+            Cookie.set('username', response.data.name);
             Cookie.set('type', response.data.type);
             console.log(response.data.type);
-            alert("Добро пожаловать, "+ response.data.type);
+            alert("Добро пожаловать, " + response.data.type+': '+response.data.name);
+            addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'USER LOGGED');
             navigate('/');
         } catch (error) {
+            alert('Неверные данные!');
             console.error('Failed to sign in:', error);
         }
     };

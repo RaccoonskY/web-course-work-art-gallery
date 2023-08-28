@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import {useNavigate} from "react-router-dom";
+
+
 import "./navbar.css";
 import NavbarItem from "./navbar-item";
 
@@ -6,6 +9,7 @@ import Cookie from "js-cookie";
 
 export default function Navbar() {
     const [isMenuOpen, setMenuOpen] = useState(false);
+    const navigate = useNavigate();
 
     const handleMenuToggle = () => {
         setMenuOpen(!isMenuOpen);
@@ -28,8 +32,20 @@ export default function Navbar() {
                 <NavbarItem text={"Контакты"} href='/contacts' ></NavbarItem>
                 <NavbarItem text={"Купить билет"} href='/booking' ></NavbarItem>
                 <NavbarItem text={"Сотрудникам"} href={'/staff_auth'} ></NavbarItem>
+                {Cookie.get('type') &&
+                    <button
+                        onClick={()=>{
+                            if (window.confirm('Вы точно хотите выйти?')){
+                                Cookie.remove('type');
+                                Cookie.remove('username');
+                                navigate('/');
+                            }
+                        }}
+                        className={`block py-2 px-4 rounded hover:bg-blue-700 hover:text-white hover:underline`}>
+                        Log Out
+                    </button>}
                 {Cookie.get('type')&&
-                    <h1></h1>}
+                    <h1>{Cookie.get('type')}</h1>}
             </div>
         </nav>
     );

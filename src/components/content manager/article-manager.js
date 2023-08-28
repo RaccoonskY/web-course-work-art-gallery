@@ -2,6 +2,8 @@ import React, {useEffect, useState} from "react";
 import axios from "axios";
 
 import {formatDate} from "../../utils/data_formate";
+import {addAction} from "../../utils/action_requests";
+import Cookie from "js-cookie";
 
 const ArticleManager = () => {
     const [articles, setArticles] = useState([]);
@@ -38,6 +40,7 @@ const ArticleManager = () => {
                 )
             );
             setEditingArticle(null);
+            addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'ARTICLE CHANGED');
         } catch (error) {
             console.error("Error saving article:", error);
         }
@@ -50,6 +53,8 @@ const ArticleManager = () => {
                 prevArticles.filter((article) => article._id !== articleToDelete._id)
             );
             setEditingArticle(null);
+
+            addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'ARTICLE DELETED');
         } catch (error) {
             console.error("Error deleting article:", error);
         }
@@ -64,6 +69,7 @@ const ArticleManager = () => {
                 text: "",
                 date: "",
             });
+            addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'ARTICLE ADDED');
         } catch (error) {
             console.error("Error adding article:", error);
         }
@@ -74,7 +80,7 @@ const ArticleManager = () => {
         <h2 className="text-xl font-bold mb-4">Article Manager</h2>
         {editingArticle ? (
             // Edit article form
-            <form onSubmit={(e) => e.preventDefault()} className="mb-4">
+            <form onSubmit={(e) => e.preventDefault()} className="mb-4 ">
                 <div>
                     <label htmlFor="previewImage">Preview Image</label>
                     <input
@@ -126,7 +132,7 @@ const ArticleManager = () => {
                 <thead>
                 <tr className="bg-gray-200">
                     <th className="border border-gray-400 py-2 px-4">ID</th>
-                    <th className="border border-gray-400 py-2 px-4">Preview Image</th>
+                    <th className="border border-gray-400 py-2 px-4 ">Preview Image</th>
                     <th className="border border-gray-400 py-2 px-4">Text</th>
                     <th className="border border-gray-400 py-2 px-4">Date</th>
                     <th className="border border-gray-400 py-2 px-4">Actions</th>
@@ -136,7 +142,7 @@ const ArticleManager = () => {
                 {articles.map((article) => (
                     <tr key={article._id} className="hover:bg-blue-100">
                         <td className="border border-gray-400 py-2 px-4">{article._id}</td>
-                        <td className="border border-gray-400 py-2 px-4">{article.previewImage}</td>
+                        <td className="border border-gray-400 py-2 px-4 w-2.5"><img src={article.previewImage}/></td>
                         <td className="border border-gray-400 py-2 px-4">{article.text}</td>
                         <td className="border border-gray-400 py-2 px-4">{formatDate(article.date)}</td>
                         <td className="border border-gray-400 py-2 px-4">

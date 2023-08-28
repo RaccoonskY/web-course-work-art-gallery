@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import {formatDate} from "../../utils/data_formate";
 import axios from "axios";
+import {addAction} from "../../utils/action_requests";
+import Cookie from "js-cookie";
 
 const MarketingManager = () => {
     // State for storing and editing consumers
@@ -31,6 +33,7 @@ const MarketingManager = () => {
             const consumerToUpdate = consumers.find((consumer) => consumer._id === id);
             await axios.put("http://localhost:3001"+`/consumer/update/${id}`, consumerToUpdate);
             setEditingId(null);
+            addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'CONSUMER UPDATED');
         } catch (error) {
             console.error(`Failed to save changes for consumer with ID: ${id}`, error);
         }
@@ -50,22 +53,12 @@ const MarketingManager = () => {
             setConsumers((prevConsumers) =>
                 prevConsumers.filter((consumer) => consumer._id !== id)
             );
+            addAction(Cookie.get('user_id'), Cookie.get('username'),Cookie.get('type'),'CONSUMER DELETED');
         } catch (error) {
             console.error(`Failed to delete consumer with ID: ${id}`, error);
         }
     };
 
-/*
-    const handleSubmitConsumer = async (consumer) => {
-        try {
-            const response = await axios.post("/api/consumers", consumer);
-            const savedConsumer = response.data;
-            setConsumers((prevConsumers) => [...prevConsumers, savedConsumer]);
-        } catch (error) {
-            console.error("Failed to submit consumer changes:", error);
-        }
-    };
-*/
 
     return (
         <div className="bg-gray-100 p-4 mt-8">

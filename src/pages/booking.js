@@ -119,6 +119,7 @@ const BookingForm = () => {
                             onChange={(e) =>{setSelectedExhibition(e.target.value);}}
                             className="w-full border border-gray-300 px-3 py-2 rounded-md mt-1"
                     >
+                        <option>Выберите выставку</option>
                         {
                             exhibitions.map((exhibition)=>(
                                 <option key={exhibition._id} value={exhibition.name}>{exhibition.name}</option>

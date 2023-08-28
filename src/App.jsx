@@ -20,11 +20,8 @@ import CEOManager from "./components/ceo manager/ceo-manager";
 const App = () => {
   return (
       <div className={'main-content h-full bg-white'}>
-          <header>
-
-          </header>
-          <Navbar></Navbar>
           <Router>
+              <Navbar></Navbar>
               <Routes>
                   <Route exact path='/contacts'  element={<SocialContacts />} />
                   <Route exact path='/'  element={<General />} />
